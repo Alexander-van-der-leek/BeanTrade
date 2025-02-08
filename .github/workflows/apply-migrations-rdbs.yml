@@ -1,0 +1,35 @@
+name: Apply Flyway Migrations to AWS RDS SQL Server
+
+on:
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Get RDS Endpoint
+        id: get-endpoint
+        run: |
+          ENDPOINT=$(aws rds describe-db-instances --db-instance-identifier ${{ vars.DB_INSTANCE_IDENTIFIER }} --query 'DBInstances[0].Endpoint.Address' --output text)
+          echo "RDS_ENDPOINT=$ENDPOINT" >> $GITHUB_ENV
+
+      - name: Run Flyway migrations
+        run: |
+          docker run --rm \
+            -v $(pwd)/migrations:/flyway/sql \
+            flyway/flyway \
+            -url=jdbc:sqlserver://${{ env.RDS_ENDPOINT }}:1433;databaseName=${{ vars.DB_NAME }};encrypt=true;trustServerCertificate=true \
+            -user=${{ vars.DB_MASTER_USERNAME }} \
+            -password=${{ secrets.DB_MASTER_PASSWORD }} \
+            migrate
