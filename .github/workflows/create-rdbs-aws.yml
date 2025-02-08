@@ -36,5 +36,4 @@ jobs:
             --master-user-password ${{ secrets.DB_MASTER_PASSWORD }} \
             --backup-retention-period 7 \
             --publicly-accessible \
-            --no-multi-az \
-            --storage-encrypted
+            --no-multi-az 
