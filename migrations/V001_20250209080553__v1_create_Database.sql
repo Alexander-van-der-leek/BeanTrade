@@ -1,8 +1,5 @@
-IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'BeanTrade')
-BEGIN
-    CREATE DATABASE BeanTrade;
-END
-GO
-
-USE BeanTrade;
+CREATE TABLE Products (
+    Id INT PRIMARY KEY,
+    Name NVARCHAR(255) NOT NULL
+);
 GO
