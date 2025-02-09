@@ -23,12 +23,16 @@ jobs:
         run: |
           ENDPOINT=$(aws rds describe-db-instances --db-instance-identifier ${{ vars.DB_INSTANCE_IDENTIFIER }} --query 'DBInstances[0].Endpoint.Address' --output text)
           echo "RDS_ENDPOINT=$ENDPOINT" >> $GITHUB_ENV
-
+      
+      - name: Debug Connection String
+        run: |
+          echo "Using connection string: jdbc:sqlserver://${{ env.RDS_ENDPOINT }}:1433;databaseName=${{ vars.DB_NAME }};encrypt=true;trustServerCertificate=true"
+      
       - name: Run Flyway migrations
         run: |
           docker run --rm \
             -v $(pwd)/migrations:/flyway/sql \
             flyway/flyway migrate \
-            -url=jdbc:sqlserver://${{ env.RDS_ENDPOINT }}:1433;databaseName=${{ vars.DB_NAME }};encrypt=true;trustServerCertificate=true \
+            -url="jdbc:sqlserver://${{ env.RDS_ENDPOINT }}:1433;databaseName=${{ vars.DB_NAME }};encrypt=true;trustServerCertificate=true" \
             -user=${{ vars.DB_MASTER_USERNAME }} \
             -password=${{ secrets.DB_MASTER_PASSWORD }} 
